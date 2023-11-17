@@ -19,6 +19,8 @@ NC = \033[0m
 
 BASE = utils \
 main \
+file \
+directory \
 
 SRCS = $(BASE:%=%.cpp)
 

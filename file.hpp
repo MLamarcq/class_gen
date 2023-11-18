@@ -6,6 +6,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <cstdlib>
+#include <sys/stat.h>
 
 struct directory
 {
@@ -21,6 +22,24 @@ struct file
 	int			tab_index;
 };
 
+class GetLineException : public std::exception
+{
+	public :
+			const char *what() const throw();
+};
+
+class FailDirectoryException : public std::exception
+{
+	public :
+			const char *what() const throw();
+};
+
+class FailChdirException : public std::exception
+{
+	public :
+			const char *what() const throw();
+};
+
 
 int main(int argc, char **argv, char **envp);
 char *to_upper(char *str);
@@ -29,9 +48,10 @@ void	create_first_file(file *file, char **argv);
 void	create_other_file(file *file, char **argv, int i);
 void free_file(file *file);
 void	final_moove(file *file, char **argv, int argc);
-void	init_struct_dir(directory *dir, char *path, char **envp);
-void	choose_path(directory *dir);
-
+void	init_struct_dir(directory *dir, char **envp);
+void	set_path(directory *dir);
+void	create_directory(directory *dir);
+void	go_Home(directory *dir);
 
 
 

@@ -8,13 +8,32 @@ int main(int argc, char **argv, char **envp)
 		return (0);
 	}
 	directory dir;
-	char *new_path = getcwd(NULL, 0);
-	std::cout << "Path = " << new_path << std::endl;
-	init_struct_dir(&dir, new_path, envp);
-	choose_path(&dir);
+	init_struct_dir(&dir, envp);
+	try
+	{
+		create_directory(&dir);
+	}
+	catch (GetLineException &e)
+	{
+		std::cout << std::endl << e.what() << std::endl;
+		delete [] dir.env;
+		return (0);
+	}
+	catch (FailDirectoryException &e)
+	{
+		std::cout << std::endl << e.what() << std::endl;
+		delete [] dir.env;
+		return (0);
+	}
+	catch (FailChdirException &e)
+	{
+		std::cout << std::endl << e.what() << std::endl;
+		delete [] dir.env;
+		return (0);
+	}
 	// file file;
 	// final_moove(&file, argv, argc);
-	free (new_path);
+	delete [] dir.env;
 	(void)argv;
 	return (0);
 }

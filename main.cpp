@@ -2,38 +2,38 @@
 
 int main(int argc, char **argv, char **envp)
 {
-	if (argc < 2)
+	if (argc > 1)
 	{
-		std::cout << "Need argument !" << std::endl;
+		std::cout << "Don't need argument !" << std::endl;
 		return (0);
 	}
 	directory dir;
-	init_struct_dir(&dir, envp);
+	file fil;
+	init_struct_dir_and_file(&dir, &fil, envp);
 	try
 	{
-		create_directory(&dir);
+		program(&dir, &fil);
 	}
 	catch (GetLineException &e)
 	{
 		std::cout << std::endl << e.what() << std::endl;
-		delete [] dir.env;
+		free_all(&dir, &fil);
 		return (0);
 	}
 	catch (FailDirectoryException &e)
 	{
 		std::cout << std::endl << e.what() << std::endl;
-		delete [] dir.env;
+		free_all(&dir, &fil);
 		return (0);
 	}
 	catch (FailChdirException &e)
 	{
 		std::cout << std::endl << e.what() << std::endl;
-		delete [] dir.env;
+		free_all(&dir, &fil);
 		return (0);
 	}
-	// file file;
-	// final_moove(&file, argv, argc);
-	delete [] dir.env;
+	free_all(&dir, &fil);
 	(void)argv;
+	(void)argc;
 	return (0);
 }

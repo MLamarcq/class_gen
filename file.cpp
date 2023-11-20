@@ -1,34 +1,84 @@
 #include "file.hpp"
 
-
-void	init_struct(file *data, char **argv, int argc)
+void	set_nbr_file(file *file)
 {
-	int i = 1;
-	int j = 0;
-	data->other_file = new std::string[argc - 2];
-	while (i < argc)
+	bool toggle = false;
+	std::string input;
+	std::cout << "How many files do you need ? (max 10) : ";
+	while (toggle == false)
 	{
-		std::string temp(argv[i]);
-		if (i == 1)
+		if (!(std::getline(std::cin, input)))
 		{
-			data->first_file = temp;
+			throw(GetLineException());
+			return ;
+		}
+		if (is_digit(input) == 0)
+		{
+			std::cout << "Wrong input please try again : ";
+			input.erase();
+		}
+		if (std::atoi(input.c_str()) > 10 || std::atoi(input.c_str()) <= 0)
+		{
+			std::cout << "Wrong number of files, please try again : ";
+			input.erase();
 		}
 		else
 		{
-			data->other_file[j] = temp;
-			std::cout << data->other_file[j] << std::endl;
-			j++;
+			file->nbr_file = std::atoi(input.c_str());
+			toggle = true;
 		}
-		temp.erase();
-		i++;
 	}
-	data->tab_index = 0;
 	return ;
 }
 
-void	create_first_file(file *file, char **argv)
+void	init_struct(file *data)
+{
+	int i = 0;
+	int j = 0;
+	set_nbr_file(data);
+	data->other_file = new std::string[data->nbr_file];
+	while (i < data->nbr_file)
+	{
+		if (i == 0)
+		{
+			std::string input;
+			while (input.empty())
+			{
+				std::cout << "Name your first file : ";
+				if (!(std::getline(std::cin, input)))
+				{
+					throw(GetLineException());
+					return ;
+				}
+			}
+			data->first_file = input;
+			input.erase();
+		}
+		else
+		{
+			std::string input;
+			while (input.empty())
+			{
+				std::cout << "Name file n* " << i + 1 << " : ";
+				if (!(std::getline(std::cin, input)))
+				{
+					throw(GetLineException());
+					return ;
+				}
+			}
+			data->other_file[j] = input;
+			input.erase();
+			j++;
+		}
+		i++;
+	}
+	return ;
+}
+
+void	create_first_file(file *file)
 {
 	std::string temp = file->first_file;
+	std::string for_upper = file->first_file;
 	temp.append(".class.hpp");
 	std::cout << temp << std::endl;
 	std::ofstream file_1(temp.c_str());
@@ -37,7 +87,7 @@ void	create_first_file(file *file, char **argv)
 		std::cerr << "Error during opening file_1" << std::endl;
 		return ;
 	}
-	std::string name(to_upper(argv[1]));
+	std::string name = to_upper(for_upper);
 
 	file_1 << "#ifndef " << name.append("_CLASS_HPP") << std::endl;
 	file_1 << "#define " << name << std::endl << std::endl;
@@ -59,9 +109,11 @@ void	create_first_file(file *file, char **argv)
 	return ;
 }
 
-void	create_other_file(file *file, char **argv, int i)
+void	create_other_file(file *file)
 {
 	std::string temp = file->other_file[file->tab_index];
+	std::string for_upper = file->other_file[file->tab_index];
+	std::cout << "temp = " << temp << std::endl;
 	temp.append(".class.hpp");
 	std::cout << temp << std::endl;
 	std::ofstream file_1(temp.c_str());
@@ -70,7 +122,7 @@ void	create_other_file(file *file, char **argv, int i)
 		std::cerr << "Error during opening file_1" << std::endl;
 		return ;
 	}
-	std::string name(to_upper(argv[i]));
+	std::string name(to_upper(for_upper.c_str()));
 	
 	file_1 << "#ifndef " << name.append("_CLASS_HPP") << std::endl;
 	file_1 << "#define " << name << std::endl << std::endl;
@@ -102,18 +154,17 @@ void free_file(file *file)
 	return ;
 }
 
-void	final_moove(file* file, char **argv, int argc)
+void	final_moove(file* file)
 {
-	int i = 1;
-	init_struct(file, argv, argc);
-	while (argv[i])
+	int i = 0;
+	init_struct(file);
+	while (i < file->nbr_file)
 	{
-		if (i == 1)
-			create_first_file(file, argv);
+		if (i == 0)
+			create_first_file(file);
 		else
-			create_other_file(file, argv, i);
+			create_other_file(file);
 		i++;
 	}
-	free_file(file);
 	return ;
 }

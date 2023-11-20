@@ -1,8 +1,9 @@
 #include "file.hpp"
 
-void	init_struct_dir(directory *dir, char **envp)
+void	init_struct_dir_and_file(directory *dir, file *file, char **envp)
 {
 	dir->env_size = 0;
+	dir->barrier = false;
 	int i = 0;
 	while (envp[i])
 	{
@@ -12,6 +13,9 @@ void	init_struct_dir(directory *dir, char **envp)
 	dir->env = new std::string[dir->env_size];
 	for (int j = 0; envp[j]; j++)
 		dir->env[j] = envp[j];
+	file->other_file = NULL;
+	file->tab_index = 0;
+	file->nbr_file = 0;
 	return ;
 }
 
@@ -35,7 +39,7 @@ void	set_path(directory *dir)
 	return ;
 }
 
-void	go_Home(directory *dir)
+void	go_Home_or_Stay(directory *dir)
 {
 	char *pwd = getcwd(NULL, 0);
 	std::string check(pwd);
@@ -69,9 +73,9 @@ void	go_Home(directory *dir)
 		}
 		else if (input.compare("Stay") == 0)
 		{
-			std::cout << "We stay here" << std::endl;
-			dir->path = check; // pas bon, refaire le chemin
-			std::cout << dir->path << std::endl;
+			std::cout << std::endl << "We stay here : ";
+			dir->path = check;
+			std::cout << dir->path << std::endl << std::endl;
 			check_2 = true;
 		}
 		else
@@ -81,14 +85,15 @@ void	go_Home(directory *dir)
 	return ;
 }
 
-void	create_directory(directory *dir)
+
+void	create_directory_first_time(directory *dir)
 {
 	bool toggle = false;
 	bool create = false;
 	std::string input;
 	
 	set_path(dir);
-	go_Home(dir);
+	go_Home_or_Stay(dir);
 	
 	while (toggle == false)
 	{
@@ -122,6 +127,8 @@ void	create_directory(directory *dir)
 					if (mkdir(name.c_str(), 0777) == 0)
 					{
 						std::cout << "Directory created with success !" << std::endl;
+						dir->dir = name;
+						go_to_dir(dir);
 						create = true;
 					}
 					else
@@ -133,6 +140,144 @@ void	create_directory(directory *dir)
 		}
 		toggle = true;
 	}
+	return ;
+}
+
+void	go_to_dir(directory *dir)
+{
+	std::cout << "Let's go to : " << dir->dir << std::endl;
+	if (chdir(dir->dir.c_str()) == 0)
+	{
+		dir->path.append("/");
+		dir->path.append(dir->dir);
+		std::cout << "Change directory succes ! We are now at : " << dir->path << std::endl;
+	}
+	else
+	{
+		throw(FailChdirException());
+	}
+	return ;
+}
+
+bool	create_directory(directory *dir)
+{
+	if (dir->barrier == false)
+	{
+		create_directory_first_time(dir);
+	}
+	bool toggle = false;
+	std::string input;
+	while (toggle == false)
+	{
+		if (dir->barrier == false)
+		{
+			std::cout << "Want you to create another directory ? 'Yes' or 'No' : ";
+			if (!(std::getline(std::cin, input)))
+			{
+				throw(GetLineException());
+				return (0);
+			}
+			if (input.compare("No") == 0)
+			{
+				std::cout << "You are still here : " << dir->path << ". No mouvement." << std::endl;
+				toggle = true;
+				return (true);
+			}
+			else if (input.compare("Yes") == 0)
+			{
+				std::string input_2;
+				bool toggle_2 = false;
+				while (toggle_2 == false)
+				{
+					std::cout << "Type the name of your new directory : ";
+					if (!(std::getline(std::cin, input_2)))
+					{
+						throw(GetLineException());
+						return (0);
+					}
+					if (input_2.empty())
+						std::cout << "Name is empty : please try again." << std::endl;
+					else
+					{
+						if (mkdir(input_2.c_str(), 0777) == 0)
+						{
+							std::cout << "Directory created with success !" << std::endl;
+							dir->dir = input_2;
+							go_to_dir(dir);
+							toggle_2 = true;
+							toggle = true;
+						}
+						else
+							throw(FailDirectoryException());
+					}
+				}
+			}
+			else
+				std::cout << "Wrong input, please try again : ";
+		}
+		else
+		{
+			std::string input_2;
+			bool toggle_2 = false;
+			while (toggle_2 == false)
+			{
+				std::cout << "Type the name of your new directory : ";
+				if (!(std::getline(std::cin, input_2)))
+				{
+					throw(GetLineException());
+					return (0);
+				}
+				if (input_2.empty())
+					std::cout << "Name is empty : please try again." << std::endl;
+				else
+				{
+					if (mkdir(input_2.c_str(), 0777) == 0)
+					{
+						std::cout << "Directory created with success !" << std::endl;
+						dir->dir = input_2;
+						go_to_dir(dir);
+						toggle_2 = true;
+						toggle = true;
+					}
+					else
+						throw(FailDirectoryException());
+				}
+			}
+		}
+	}
+	dir->barrier = true;
+	return (false);
+}
+
+void	program(directory *dir, file *file)
+{
+	if (create_directory(dir) == false)
+	{
+		bool loop = false;
+		std::string input;
+		while(loop == false)
+		{
+			std::cout << "Do you need to create another directory ? ";
+			if (!(std::getline(std::cin, input)))
+			{
+				throw(GetLineException());
+				return ;
+			}
+			if (input.compare("No") == 0)
+			{
+				loop = true;
+				std::cout << "Ok. We stay here : " << dir->path << std::endl;
+			}
+			else if (input.compare("Yes") == 0)
+			{
+				if(create_directory(dir) == true)
+					loop = true;
+			}
+			else
+				std::cout << "Wrong input. Please, try again : ";
+		}
+	}
+	final_moove(file);
 	return ;
 }
 
